@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./logo.png" height=120>
+    <img src="./logonew.png" height=120>
 </div>
 
 A smart irrigation system + environmental monitor project that uses embedded technology to alert the user of a plants watering needs, as well as gathering a plants environmental data. 
