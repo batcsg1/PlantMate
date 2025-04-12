@@ -18,7 +18,7 @@ def data():
 
         # Open data file for writing
         with open(file, "a", newline='') as f:
-            serialCom = serial.Serial('COM3', 9600)
+            serialCom = serial.Serial('/dev/ttyS0', 9600)
 
             # Reset the Arduino
             serialCom.setDTR(False)
