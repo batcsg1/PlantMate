@@ -12,7 +12,7 @@ Some outdoor plant owners can often neglect their plants, especially during dry 
 
 Another part of the problem is that outdoor plant owners may not have a definitive understanding of the environment of their plants. To change all of this, PlantMate aims to be a portable product that can help outdoor plant owners monitor their plants as well as provide them with efficent care. 
 
-**PlantMate** is a (to be) automatic irrigation system that does the following:
+**PlantMate** is a (to be) automatic plant monitoring system that does the following:
 
 - Monitor temperature, humidity, and soil moisture
 - Changes displayed info through button press
