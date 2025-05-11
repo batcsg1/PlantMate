@@ -3,7 +3,7 @@
 </div>
 
 ## Description
-A smart irrigation system + environmental monitor project that uses embedded technology to alert the user of a plants watering needs, as well as gathering a plants environmental data. 
+A **smart irrigation system** + **environmental monitor** project that uses embedded technology to alert the user of a plants watering needs, as well as gathering a plants environmental data. 
 
 ## Purpose
 The purpose of **PlantMate** is to not only provide plant owners with an automated watering system for their plants, but also to give plant owners an idea of the environmental conditions their plant is subject to. 
