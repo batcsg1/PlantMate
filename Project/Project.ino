@@ -19,14 +19,20 @@ int humidity;
 ///Buzzer
 int buzzer = 13;
 
+//Light sensor values
+#define lightPin A1
+int light;
+
 //Buttons
 int tempH = 2;
 int moistureBtn = 3;
+int lightBtn = 4;
 
 //Menu state enum
 enum MenuState { HOME,
                  TEMP_HUMIDITY,
-                 MOISTURE };
+                 MOISTURE,
+                 LIGHT };
 MenuState currentMenu = HOME;
 
 void setup() {
@@ -37,11 +43,13 @@ void setup() {
   pinMode(buzzer, OUTPUT);
   pinMode(tempH, INPUT_PULLUP);
   pinMode(moistureBtn, INPUT_PULLUP);
+  pinMode(lightBtn, INPUT_PULLUP);
 
   //Declare data headers
   Serial.print("Temperature(C), ");
   Serial.print("Humidity(%), ");
-  Serial.print("Moisture(%)");
+  Serial.print("Moisture(%), ");
+  Serial.print("Light(%)");
   Serial.println();
 
   lcd.init();       //initialize the lcd
@@ -52,6 +60,7 @@ void loop() {
   //Allow data to be fed in
   soilMoisture();
   tempHumidity();
+  lightSensor();
 
   //Serial readings of data from sensors
   Serial.print(temperature);  //Tempearture
@@ -60,6 +69,7 @@ void loop() {
   Serial.print(" ");
   Serial.print(percentage);  //Moisture
   Serial.print(" ");
+  Serial.print(light);
   Serial.println();
 
   checkButtons();
@@ -73,13 +83,17 @@ void beep() {
   delay(1000);         // ...for 1sec
 }
 
-//-- Logic functions for Temprature, Humidity and Soil Moisture
+//-- Logic functions for Temprature, Humidity, Soil Moisture and Light
 void soilMoisture() {
   moisture = analogRead(moisturePin);
   percentage = map(moisture, dryValue, wetValue, 0, 100);
   //ChatGPT code for keeping percentage within 0 to 100%
   //Prompt: how to keep a percentage range from 0 to 100% within range
   percentage = constrain(percentage, 0, 100);  //Constrain percentage within 0 to 100%
+
+  if (percentage < 20){
+    //beep();
+  }
 }
 
 void tempHumidity() {
@@ -87,6 +101,11 @@ void tempHumidity() {
   int result = dht11.readTemperatureHumidity(temperature, humidity);
 }
 
+void lightSensor(){
+  light = analogRead(lightPin);
+}
+
+//-- LCD Functions
 void menu() {
   lcd.clear();                    // clear display
   lcd.setCursor(0, 0);            // move cursor to   (0, 0)
@@ -113,7 +132,6 @@ void printMoisture() {
   if (percentage < 20) {
     lcd.setCursor(0, 1);
     lcd.print("Plant is sad:(");
-    beep();
   } else if (percentage > 20 && percentage < 70) {
     lcd.setCursor(0, 1);
     lcd.print("Plant is happy:)");
@@ -123,6 +141,15 @@ void printMoisture() {
   }
 }
 
+void printLight() {
+  //LCD Code will go here
+  lcd.clear();  // clear display
+  lcd.setCursor(0, 0);
+  lcd.print("Light: " + String(light) + "%");
+}
+
+// Menu and button logic 
+
 void checkButtons() {
   delay(50);
   if (digitalRead(tempH) == LOW) {
@@ -131,6 +158,10 @@ void checkButtons() {
 
   if (digitalRead(moistureBtn) == LOW) {
     currentMenu = MOISTURE;
+  }
+
+  if (digitalRead(lightBtn) == LOW) {
+    currentMenu = LIGHT;
   }
   menuState();
 }
@@ -142,5 +173,7 @@ void menuState() {
     printTH();
   } else if (currentMenu == MOISTURE) {
     printMoisture();
+  } else if (currentMenu == LIGHT){
+    printLight();
   }
 }
