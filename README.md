@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./logonew.png" height=170>
+    <img src="./logo11052025.png" height=150>
 </div>
 
 ## Description
