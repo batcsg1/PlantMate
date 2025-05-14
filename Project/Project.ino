@@ -28,6 +28,8 @@ int tempH = 2;
 int moistureBtn = 3;
 int lightBtn = 4;
 
+int waterPump = 5;
+
 //Menu state enum
 enum MenuState { HOME,
                  TEMP_HUMIDITY,
@@ -44,6 +46,8 @@ void setup() {
   pinMode(tempH, INPUT_PULLUP);
   pinMode(moistureBtn, INPUT_PULLUP);
   pinMode(lightBtn, INPUT_PULLUP);
+  pinMode(waterPump, OUTPUT);
+  digitalWrite(waterPump, HIGH);
 
   //Declare data headers
   Serial.print("Temperature(C), ");
