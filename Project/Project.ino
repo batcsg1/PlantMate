@@ -1,9 +1,10 @@
 // Include the DHT11 library for interfacing with the temperature/humidity sensor.
-#include <DHT11.h>
-DHT11 dht11(12);  //temperature/humidity sensor
+#include <DHT22.h>
+#define pinDATA 12
+DHT22 dht22(pinDATA);  //temperature/humidity sensor
 
-#include <LiquidCrystal_I2C.h>       // Library for LCD
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
+#include <LiquidCrystal_I2C.h>         // Library for LCD
+  LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
 //Moisture sensor values
 #define moisturePin A0
@@ -28,6 +29,7 @@ int tempH = 2;
 int moistureBtn = 3;
 int lightBtn = 4;
 
+//Water pump
 int waterPump = 5;
 
 //Menu state enum
@@ -47,7 +49,6 @@ void setup() {
   pinMode(moistureBtn, INPUT_PULLUP);
   pinMode(lightBtn, INPUT_PULLUP);
   pinMode(waterPump, OUTPUT);
-  digitalWrite(waterPump, HIGH);
 
   //Declare data headers
   Serial.print("Temperature(C), ");
@@ -61,6 +62,7 @@ void setup() {
 }
 
 void loop() {
+  digitalWrite(waterPump, HIGH);
   //Allow data to be fed in
   soilMoisture();
   tempHumidity();
@@ -95,17 +97,23 @@ void soilMoisture() {
   //Prompt: how to keep a percentage range from 0 to 100% within range
   percentage = constrain(percentage, 0, 100);  //Constrain percentage within 0 to 100%
 
-  if (percentage < 20){
+  if (percentage < 20) {
     //beep();
   }
 }
 
 void tempHumidity() {
   // Attempt to read the temperature and humidity values from the DHT11 sensor.
-  int result = dht11.readTemperatureHumidity(temperature, humidity);
+  temperature = dht22.getTemperature();
+  humidity = dht22.getHumidity();
+
+  if (dht22.getLastError() != dht22.OK) {
+    Serial.print("last error :");
+    Serial.println(dht22.getLastError());
+  }
 }
 
-void lightSensor(){
+void lightSensor() {
   light = analogRead(lightPin);
 }
 
@@ -152,7 +160,7 @@ void printLight() {
   lcd.print("Light: " + String(light) + "%");
 }
 
-// Menu and button logic 
+// Menu and button logic
 
 void checkButtons() {
   delay(50);
@@ -177,7 +185,7 @@ void menuState() {
     printTH();
   } else if (currentMenu == MOISTURE) {
     printMoisture();
-  } else if (currentMenu == LIGHT){
+  } else if (currentMenu == LIGHT) {
     printLight();
   }
 }
