@@ -8,10 +8,10 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
 //Moisture sensor values
 #define moisturePin A0
-#define dryValue 330;
-#define wetValue 650;
-#define percentage;
-#define moisture;
+int dryValue = 330;
+int wetValue = 650;
+int percentage;
+int moisture;
 
 //Temp and humidity values
 int temperature;
@@ -25,12 +25,12 @@ int buzzer = 13;
 int light;
 
 //Buttons
-#define tempH = 2;
-#define moistureBtn = 3;
-#define lightBtn = 4;
+#define tempH 2
+#define moistureBtn 3
+#define lightBtn 4
 
 //Water pump
-#define waterPump = 5;
+#define waterPump 5
 
 //Menu state enum
 enum MenuState { HOME,
