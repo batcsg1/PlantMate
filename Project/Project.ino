@@ -6,6 +6,8 @@ DHT22 dht22(pinDATA);  //temperature/humidity sensor
 #include <LiquidCrystal_I2C.h>       // Library for LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
+#include <HCSR04.h>
+
 //Moisture sensor values
 #define moisturePin A0
 int dryValue = 330;
@@ -32,6 +34,11 @@ int light;
 //Water pump
 #define waterPump 5
 
+//Water level sensor
+#define trig_pin 2
+#define echo_pin 3
+HCSR04 hc(trig_pin, echo_pin); //initialisation class HCSR04 (trig pin , echo pin)
+
 //Menu state enum
 enum MenuState { HOME,
                  TEMP_HUMIDITY,
@@ -46,16 +53,21 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(buzzer, OUTPUT);
+  pinMode(waterPump, OUTPUT);
+
   pinMode(tempH, INPUT_PULLUP);
   pinMode(moistureBtn, INPUT_PULLUP);
   pinMode(lightBtn, INPUT_PULLUP);
-  pinMode(waterPump, OUTPUT);
+
+  pinMode(echo_pin, INPUT);
+  pinMode(trig_pin, OUTPUT);
 
   //Declare data headers
   Serial.print("Temperature(C), ");
   Serial.print("Humidity(%), ");
   Serial.print("Moisture(%), ");
-  Serial.print("Light(%)");
+  Serial.print("Light(%), ");
+  Serial.print("Water Level(cm)");
   Serial.println();
 
   lcd.init();       //initialize the lcd
@@ -65,6 +77,7 @@ void setup() {
 void loop() {
 
   //Allow data to be fed in
+  
   soilMoisture();
   tempHumidity();
   lightSensor();
@@ -77,6 +90,8 @@ void loop() {
   Serial.print(percentage);  //Moisture
   Serial.print(" ");
   Serial.print(light);
+  Serial.print(" ");
+  Serial.print(hc.dist());
   Serial.println();
 
   checkButtons();
@@ -90,7 +105,6 @@ void beep() {
   delay(1000);         // ...for 1sec
 }
 
-//-- Logic functions for Temprature, Humidity, Soil Moisture and Light
 void soilMoisture() {
   moisture = analogRead(moisturePin);
   percentage = map(moisture, dryValue, wetValue, 0, 100);
