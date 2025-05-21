@@ -1,12 +1,12 @@
 // Include the DHT11 library for interfacing with the temperature/humidity sensor.
-#include <DHT22.h>
-#define pinDATA 12
-DHT22 dht22(pinDATA);  //temperature/humidity sensor
+#include "DHT.h"
+#define DHTPIN 7
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);  //temperature/humidity sensor
 
 #include <LiquidCrystal_I2C.h>       // Library for LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
-#include <HCSR04.h>
 
 //Moisture sensor values
 #define moisturePin A0
@@ -16,8 +16,8 @@ int percentage;
 int moisture;
 
 //Temp and humidity values
-int temperature;
-int humidity;
+float temperature;
+float humidity;
 
 ///Buzzer
 int buzzer = 13;
@@ -27,24 +27,25 @@ int buzzer = 13;
 int light;
 
 //Buttons
-#define tempH 2
-#define moistureBtn 3
-#define lightBtn 4
+// #define tempH 2
+// #define moistureBtn 3
+// #define lightBtn 4
 
 //Water pump
 #define waterPump 5
 
 //Water level sensor
+#include <HCSR04.h>
 #define trig_pin 2
 #define echo_pin 3
-HCSR04 hc(trig_pin, echo_pin); //initialisation class HCSR04 (trig pin , echo pin)
+HCSR04 hc(trig_pin, echo_pin);  //initialisation class HCSR04 (trig pin , echo pin)
 
 //Menu state enum
 enum MenuState { HOME,
                  TEMP_HUMIDITY,
                  MOISTURE,
                  LIGHT };
-                
+
 MenuState currentMenu = HOME;
 
 void setup() {
@@ -52,12 +53,14 @@ void setup() {
   // Using a baud rate of 9600 bps.
   Serial.begin(9600);
 
+  dht.begin();
+
   pinMode(buzzer, OUTPUT);
   pinMode(waterPump, OUTPUT);
 
-  pinMode(tempH, INPUT_PULLUP);
-  pinMode(moistureBtn, INPUT_PULLUP);
-  pinMode(lightBtn, INPUT_PULLUP);
+  // pinMode(tempH, INPUT_PULLUP);
+  // pinMode(moistureBtn, INPUT_PULLUP);
+  // pinMode(lightBtn, INPUT_PULLUP);
 
   pinMode(echo_pin, INPUT);
   pinMode(trig_pin, OUTPUT);
@@ -77,7 +80,7 @@ void setup() {
 void loop() {
 
   //Allow data to be fed in
-  
+
   soilMoisture();
   tempHumidity();
   lightSensor();
@@ -94,8 +97,9 @@ void loop() {
   Serial.print(hc.dist());
   Serial.println();
 
-  checkButtons();
-  delay(1000);
+  //checkButtons();
+  menuState();
+  delay(1500);
 }
 
 void beep() {
@@ -112,17 +116,16 @@ void soilMoisture() {
   //Prompt: how to keep a percentage range from 0 to 100% within range
   percentage = constrain(percentage, 0, 100);  //Constrain percentage within 0 to 100%
 
-  if (percentage == 0) {
-    digitalWrite(waterPump, LOW);  // Relay ON
-  } else {
-    digitalWrite(waterPump, HIGH); // Relay OFF
-  }
+  // if (percentage == 0) {
+    digitalWrite(waterPump, HIGH);  // Relay ON
+  // } else {
+    // digitalWrite(waterPump, HIGH);  // Relay OFF
+  // }
 }
 
 void tempHumidity() {
-  // Attempt to read the temperature and humidity values from the DHT11 sensor.
-  temperature = dht22.getTemperature();
-  humidity = dht22.getHumidity();
+  humidity = dht.readHumidity();
+  temperature = dht.readTemperature();
 }
 
 void lightSensor() {
@@ -174,21 +177,20 @@ void printLight() {
 
 // Menu and button logic
 
-void checkButtons() {
-  delay(50);
-  if (digitalRead(tempH) == LOW) {
-    currentMenu = TEMP_HUMIDITY;
-  }
+// void checkButtons() {
+//   delay(50);
+//   if (digitalRead(tempH) == LOW) {
+//     currentMenu = TEMP_HUMIDITY;
+//   }
 
-  if (digitalRead(moistureBtn) == LOW) {
-    currentMenu = MOISTURE;
-  }
+//   if (digitalRead(moistureBtn) == LOW) {
+//     currentMenu = MOISTURE;
+//   }
 
-  if (digitalRead(lightBtn) == LOW) {
-    currentMenu = LIGHT;
-  }
-  menuState();
-}
+//   if (digitalRead(lightBtn) == LOW) {
+//     currentMenu = LIGHT;
+//   }
+// }
 
 void menuState() {
   if (currentMenu == HOME) {
