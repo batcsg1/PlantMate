@@ -113,7 +113,6 @@ void soilMoisture() {
   //ChatGPT code for keeping percentage within 0 to 100%
   //Prompt: how to keep a percentage range from 0 to 100% within range
   int rawMoisture = analogRead(moisturePin);
-  Serial.println(rawMoisture);
   percentage = map(rawMoisture, wet, dry, 100, 0);  //Constrain percentage within 0 to 100%
   moisture = constrain(percentage, 0, 100);
   // if (percentage == 0) {
