@@ -10,8 +10,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
 //Moisture sensor values
 #define moisturePin A0
-int dryValue = 330;
-int wetValue = 650;
+int dry = 560;
+int wet = 280;
 int percentage;
 int moisture;
 
@@ -90,7 +90,7 @@ void loop() {
   Serial.print(" ");
   Serial.print(humidity);  //Humidity
   Serial.print(" ");
-  Serial.print(percentage);  //Moisture
+  Serial.print(moisture);  //Moisture
   Serial.print(" ");
   Serial.print(light);
   Serial.print(" ");
@@ -110,12 +110,12 @@ void beep() {
 }
 
 void soilMoisture() {
-  moisture = analogRead(moisturePin);
-  percentage = map(moisture, dryValue, wetValue, 0, 100);
   //ChatGPT code for keeping percentage within 0 to 100%
   //Prompt: how to keep a percentage range from 0 to 100% within range
-  percentage = constrain(percentage, 0, 100);  //Constrain percentage within 0 to 100%
-
+  int rawMoisture = analogRead(moisturePin);
+  Serial.println(rawMoisture);
+  percentage = map(rawMoisture, wet, dry, 100, 0);  //Constrain percentage within 0 to 100%
+  moisture = constrain(percentage, 0, 100);
   // if (percentage == 0) {
     digitalWrite(waterPump, HIGH);  // Relay ON
   // } else {
