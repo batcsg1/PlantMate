@@ -7,6 +7,8 @@ DHT dht(DHTPIN, DHTTYPE);  //temperature/humidity sensor
 #include <LiquidCrystal_I2C.h>       // Library for LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
+//Infrared receiver
+#include <IRremote.hpp>
 
 //Moisture sensor values
 #define moisturePin A0
@@ -26,11 +28,6 @@ int buzzer = 13;
 #define lightPin A1
 int light;
 
-//Buttons
-// #define tempH 2
-// #define moistureBtn 3
-// #define lightBtn 4
-
 //Water pump
 #define waterPump 5
 
@@ -49,18 +46,16 @@ enum MenuState { HOME,
 MenuState currentMenu = HOME;
 
 void setup() {
-  // Initialize serial communication to allow debugging and data readout.
-  // Using a baud rate of 9600 bps.
   Serial.begin(9600);
 
+  //Setup DHT22
   dht.begin();
+
+  //IR Receiver
+  IrReceiver.begin(6);
 
   pinMode(buzzer, OUTPUT);
   pinMode(waterPump, OUTPUT);
-
-  // pinMode(tempH, INPUT_PULLUP);
-  // pinMode(moistureBtn, INPUT_PULLUP);
-  // pinMode(lightBtn, INPUT_PULLUP);
 
   pinMode(echo_pin, INPUT);
   pinMode(trig_pin, OUTPUT);
@@ -78,9 +73,8 @@ void setup() {
 }
 
 void loop() {
-
   //Allow data to be fed in
-
+  menuState();
   soilMoisture();
   tempHumidity();
   lightSensor();
@@ -97,9 +91,41 @@ void loop() {
   Serial.print(hc.dist());
   Serial.println();
 
-  //checkButtons();
-  menuState();
+
+  switch (currentMenu) {
+    case HOME:
+      menu();
+      break;
+    case TEMP_HUMIDITY:
+      printTH();
+      break;
+    case MOISTURE:
+      printMoisture();
+      break;
+    case LIGHT:
+      printLight();
+      break;
+  }
   delay(1500);
+}
+
+void menuState() {
+  if (IrReceiver.decode()) {
+    uint32_t irValue = IrReceiver.decodedIRData.decodedRawData;
+
+    // Print the value in HEX format
+    Serial.print("Hex Code: 0x");
+    Serial.println(irValue, HEX);
+
+    switch (irValue) {
+      case 0xF30CFF00: currentMenu = HOME; break;
+      case 0xE718FF00: currentMenu = TEMP_HUMIDITY; break;
+      case 0xA15EFF00: currentMenu = MOISTURE; break;
+      case 0xF708FF00: currentMenu = LIGHT; break;
+    }
+
+    IrReceiver.resume();
+  }
 }
 
 void beep() {
@@ -116,9 +142,9 @@ void soilMoisture() {
   percentage = map(rawMoisture, wet, dry, 100, 0);  //Constrain percentage within 0 to 100%
   moisture = constrain(percentage, 0, 100);
   // if (percentage == 0) {
-    digitalWrite(waterPump, HIGH);  // Relay ON
+  digitalWrite(waterPump, HIGH);  // Relay ON
   // } else {
-    // digitalWrite(waterPump, HIGH);  // Relay OFF
+  // digitalWrite(waterPump, HIGH);  // Relay OFF
   // }
 }
 
@@ -172,33 +198,4 @@ void printLight() {
   lcd.clear();  // clear display
   lcd.setCursor(0, 0);
   lcd.print("Light: " + String(light) + "%");
-}
-
-// Menu and button logic
-
-// void checkButtons() {
-//   delay(50);
-//   if (digitalRead(tempH) == LOW) {
-//     currentMenu = TEMP_HUMIDITY;
-//   }
-
-//   if (digitalRead(moistureBtn) == LOW) {
-//     currentMenu = MOISTURE;
-//   }
-
-//   if (digitalRead(lightBtn) == LOW) {
-//     currentMenu = LIGHT;
-//   }
-// }
-
-void menuState() {
-  if (currentMenu == HOME) {
-    menu();
-  } else if (currentMenu == TEMP_HUMIDITY) {
-    printTH();
-  } else if (currentMenu == MOISTURE) {
-    printMoisture();
-  } else if (currentMenu == LIGHT) {
-    printLight();
-  }
 }
