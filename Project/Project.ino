@@ -1,4 +1,4 @@
-// Include the DHT11 library for interfacing with the temperature/humidity sensor.
+// Include the DHT22 library for interfacing with the temperature/humidity sensor.
 #include "DHT.h"
 #define DHTPIN 7
 #define DHTTYPE DHT22
