@@ -1,3 +1,6 @@
+//Custom library for analogue sensors
+#include <Analogue.h>
+
 // Include the DHT22 library for interfacing with the temperature/humidity sensor.
 #include "DHT.h"
 #define DHTPIN 7
@@ -12,10 +15,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
 
 //Moisture sensor values
 #define moisturePin A0
-int dry = 560;
-int wet = 280;
-int percentage;
-int moisture;
+Analogue moisture(moisturePin);
 
 //Temp and humidity values
 float temperature;
@@ -26,10 +26,11 @@ int buzzer = 13;
 
 //Light sensor values
 #define lightPin A1
-int light;
+Analogue light(lightPin);
 
 //Water pump
 #define waterPump 5
+bool isPump = false;
 
 //Water level sensor
 #include <HCSR04.h>
@@ -84,9 +85,9 @@ void loop() {
   Serial.print(" ");
   Serial.print(humidity);  //Humidity
   Serial.print(" ");
-  Serial.print(moisture);  //Moisture
+  Serial.print(moisture.digital);  //Moisture
   Serial.print(" ");
-  Serial.print(light);
+  Serial.print(light.digital);
   Serial.print(" ");
   Serial.print(hc.dist());
   Serial.println();
@@ -117,11 +118,15 @@ void menuState() {
     Serial.print("Hex Code: 0x");
     Serial.println(irValue, HEX);
 
+    digitalWrite(waterPump, isPump ? HIGH : LOW);
+
     switch (irValue) {
       case 0xF30CFF00: currentMenu = HOME; break;
       case 0xE718FF00: currentMenu = TEMP_HUMIDITY; break;
       case 0xA15EFF00: currentMenu = MOISTURE; break;
       case 0xF708FF00: currentMenu = LIGHT; break;
+      case 0xEA15FF00: isPump = true; break;
+      case 0xF807FF00: isPump = false; break;
     }
 
     IrReceiver.resume();
@@ -138,14 +143,13 @@ void beep() {
 void soilMoisture() {
   //ChatGPT code for keeping percentage within 0 to 100%
   //Prompt: how to keep a percentage range from 0 to 100% within range
-  int rawMoisture = analogRead(moisturePin);
-  percentage = map(rawMoisture, wet, dry, 100, 0);  //Constrain percentage within 0 to 100%
-  moisture = constrain(percentage, 0, 100);
-  // if (percentage == 0) {
-  digitalWrite(waterPump, HIGH);  // Relay ON
-  // } else {
-  // digitalWrite(waterPump, HIGH);  // Relay OFF
-  // }
+  moisture.begin(280, 560);
+
+  if (moisture.digital <= 30) {
+    digitalWrite(waterPump, HIGH);  // Relay ON
+  } else {
+    digitalWrite(waterPump, LOW);  // Relay OFF
+  }
 }
 
 void tempHumidity() {
@@ -154,7 +158,7 @@ void tempHumidity() {
 }
 
 void lightSensor() {
-  light = analogRead(lightPin);
+  light.begin(1000, 150);
 }
 
 //-- LCD Functions
@@ -180,14 +184,14 @@ void printMoisture() {
   //LCD Code will go here
   lcd.clear();  // clear display
   lcd.setCursor(0, 0);
-  lcd.print("Moisture: " + String(percentage) + "%");
-  if (percentage < 20) {
+  lcd.print("Moisture: " + String(moisture.digital) + "%");
+  if (moisture.digital < 20) {
     lcd.setCursor(0, 1);
     lcd.print("Plant is sad:(");
-  } else if (percentage > 20 && percentage < 70) {
+  } else if (moisture.digital > 20 && moisture.digital < 70) {
     lcd.setCursor(0, 1);
     lcd.print("Plant is happy:)");
-  } else if (percentage > 70) {
+  } else if (moisture.digital > 70) {
     lcd.setCursor(0, 1);
     lcd.print("Plant is wet:)");
   }
@@ -197,5 +201,5 @@ void printLight() {
   //LCD Code will go here
   lcd.clear();  // clear display
   lcd.setCursor(0, 0);
-  lcd.print("Light: " + String(light) + "%");
+  lcd.print("Light: " + String(light.digital) + "%");
 }
