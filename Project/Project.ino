@@ -152,18 +152,19 @@ void lightSensor() {
 // ## LCD Functions ##
 
 void menu() {
-  lcd.clear();                    // clear display
-  lcd.setCursor(0, 0);            // move cursor to   (0, 0)
-  lcd.print("PlantMate");         // print message at (0, 0)
-  lcd.setCursor(0, 1);            // move cursor to   (2, 1)
-  lcd.print("Smart Irrigation");  // print message at (2, 1)
+  lcd.clear();            
+  lcd.setCursor(0, 0);       
+  lcd.print("PlantMate");  
+        
+  lcd.setCursor(0, 1);          
+  lcd.print("Smart Irrigation"); 
 }
 
 void printTH() {
-  //LCD Code will go here
-  lcd.clear();  // clear display
+  lcd.clear(); 
   lcd.setCursor(0, 0);
   lcd.print("Temp: " + String(temperature) + "C");
+
   lcd.setCursor(0, 1);
   lcd.print("Humidity: " + String(humidity) + "%");
 }
@@ -172,6 +173,7 @@ void printMoisture() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Moisture: " + String(moisture.digital) + "%");
+
   lcd.setCursor(0, 1);
   if (moisture.digital < 20) {
     lcd.print("Plant is sad:(");
