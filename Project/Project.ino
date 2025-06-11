@@ -7,8 +7,8 @@
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);  //temperature/humidity sensor
 
-#include <LiquidCrystal_I2C.h>       // Library for LCD
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C address 0x27, 16 column and 2 rows
+#include <LiquidCrystal_I2C.h>  
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //Infrared receiver
 #include <IRremote.hpp>
@@ -20,9 +20,6 @@ Analogue moisture(moisturePin);
 //Temp and humidity values
 float temperature;
 float humidity;
-
-///Buzzer
-int buzzer = 13;
 
 //Light sensor values
 #define lightPin A1
@@ -55,7 +52,6 @@ void setup() {
   //IR Receiver
   IrReceiver.begin(6);
 
-  pinMode(buzzer, OUTPUT);
   pinMode(waterPump, OUTPUT);
 
   pinMode(echo_pin, INPUT);
@@ -91,7 +87,6 @@ void loop() {
   Serial.print(" ");
   Serial.print(hc.dist());
   Serial.println();
-
 
   switch (currentMenu) {
     case HOME:
@@ -133,16 +128,9 @@ void menuState() {
   }
 }
 
-void beep() {
-  tone(buzzer, 1000);  // Send 1KHz sound signal...
-  delay(1000);         // ...for 1 sec
-  noTone(buzzer);      // Stop sound...
-  delay(1000);         // ...for 1sec
-}
+// ## Logic functions ##
 
 void soilMoisture() {
-  //ChatGPT code for keeping percentage within 0 to 100%
-  //Prompt: how to keep a percentage range from 0 to 100% within range
   moisture.begin(280, 560);
 
   if (moisture.digital <= 30) {
@@ -161,7 +149,8 @@ void lightSensor() {
   light.begin(1000, 150);
 }
 
-//-- LCD Functions
+// ## LCD Functions ##
+
 void menu() {
   lcd.clear();                    // clear display
   lcd.setCursor(0, 0);            // move cursor to   (0, 0)
@@ -170,7 +159,6 @@ void menu() {
   lcd.print("Smart Irrigation");  // print message at (2, 1)
 }
 
-//-- Print functions for Temprature, Humidity and Soil Moisture
 void printTH() {
   //LCD Code will go here
   lcd.clear();  // clear display
@@ -181,25 +169,32 @@ void printTH() {
 }
 
 void printMoisture() {
-  //LCD Code will go here
-  lcd.clear();  // clear display
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Moisture: " + String(moisture.digital) + "%");
+  lcd.setCursor(0, 1);
   if (moisture.digital < 20) {
-    lcd.setCursor(0, 1);
     lcd.print("Plant is sad:(");
   } else if (moisture.digital > 20 && moisture.digital < 70) {
-    lcd.setCursor(0, 1);
     lcd.print("Plant is happy:)");
   } else if (moisture.digital > 70) {
-    lcd.setCursor(0, 1);
     lcd.print("Plant is wet:)");
   }
 }
 
 void printLight() {
-  //LCD Code will go here
-  lcd.clear();  // clear display
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Light: " + String(light.digital) + "%");
+
+  lcd.setCursor(0, 1);
+  if (light.digital < 30) {
+    lcd.print("Too dark");
+  } else if (light.digital >= 30 && light.digital < 70) {
+    lcd.print("Adequate light");
+  } else if (light.digital >= 70 && light.digital <= 100) {
+    lcd.print("Plenty of light");
+  } else {
+    lcd.print("Sensor error?");
+  }
 }
