@@ -27,7 +27,6 @@ Analogue light(lightPin);
 
 //Water pump
 #define waterPump 5
-bool isPump = false;
 
 //Water level sensor
 #include <HCSR04.h>
@@ -35,11 +34,12 @@ bool isPump = false;
 #define echo_pin 3
 HCSR04 hc(trig_pin, echo_pin);  //initialisation class HCSR04 (trig pin , echo pin)
 
-//Menu state enum
+// Menu state enum
 enum MenuState { HOME,
                  TEMP_HUMIDITY,
                  MOISTURE,
-                 LIGHT };
+                 LIGHT,
+                 WATER };
 
 MenuState currentMenu = HOME;
 
@@ -71,10 +71,12 @@ void setup() {
 
 void loop() {
   //Allow data to be fed in
-  menuState();
   soilMoisture();
   tempHumidity();
   lightSensor();
+
+  // Menu method
+  menuState();
 
   //Serial readings of data from sensors
   Serial.print(temperature);  //Tempearture
@@ -83,9 +85,9 @@ void loop() {
   Serial.print(" ");
   Serial.print(moisture.digital);  //Moisture
   Serial.print(" ");
-  Serial.print(light.digital);
+  Serial.print(light.digital); // Light
   Serial.print(" ");
-  Serial.print(hc.dist());
+  Serial.print(hc.dist()); // Water level
   Serial.println();
 
   switch (currentMenu) {
@@ -101,6 +103,9 @@ void loop() {
     case LIGHT:
       printLight();
       break;
+    case WATER:
+      printWater();
+      break;
   }
   delay(1500);
 }
@@ -113,15 +118,13 @@ void menuState() {
     Serial.print("Hex Code: 0x");
     Serial.println(irValue, HEX);
 
-    digitalWrite(waterPump, isPump ? HIGH : LOW);
-
+    // Switch statement for button values
     switch (irValue) {
       case 0xF30CFF00: currentMenu = HOME; break;
       case 0xE718FF00: currentMenu = TEMP_HUMIDITY; break;
       case 0xA15EFF00: currentMenu = MOISTURE; break;
       case 0xF708FF00: currentMenu = LIGHT; break;
-      case 0xEA15FF00: isPump = true; break;
-      case 0xF807FF00: isPump = false; break;
+      case 0xE31CFF00: currentMenu = WATER; break;
     }
 
     IrReceiver.resume();
@@ -158,6 +161,15 @@ void menu() {
         
   lcd.setCursor(0, 1);          
   lcd.print("Smart Irrigation"); 
+}
+
+void printWater() {
+  lcd.clear();            
+  lcd.setCursor(0, 0);       
+  lcd.print("Water level:");  
+        
+  lcd.setCursor(0, 1);          
+  lcd.print(String(hc.dist()) + "cm");
 }
 
 void printTH() {
