@@ -15,7 +15,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //Moisture sensor values
 #define moisturePin A0
-Analogue moisture(moisturePin);
+Analogue moisture_sensor(moisturePin);
+int moisture;
 
 //Temp and humidity values
 float temperature;
@@ -23,16 +24,18 @@ float humidity;
 
 //Light sensor values
 #define lightPin A1
-Analogue light(lightPin);
+Analogue light_sensor(lightPin);
+int light;
 
 //Water pump
 #define waterPump 5
 
 //Water level sensor
-#include <HCSR04.h>
+#include <NewPing.h>
 #define trig_pin 2
 #define echo_pin 3
-HCSR04 hc(trig_pin, echo_pin);  //initialisation class HCSR04 (trig pin , echo pin)
+#define MAX_DISTANCE 200
+NewPing sonar(trig_pin, echo_pin, MAX_DISTANCE);  //initialisation class HCSR04 (trig pin , echo pin)
 
 // Menu state enum
 enum MenuState { HOME,
@@ -83,11 +86,11 @@ void loop() {
   Serial.print(" ");
   Serial.print(humidity);  //Humidity
   Serial.print(" ");
-  Serial.print(moisture.digital);  //Moisture
+  Serial.print(moisture);  //Moisture
   Serial.print(" ");
-  Serial.print(light.digital); // Light
+  Serial.print(light); // Light
   Serial.print(" ");
-  Serial.print(hc.dist()); // Water level
+  Serial.print(sonar.ping_cm()); // Water level
   Serial.println();
 
   switch (currentMenu) {
@@ -134,9 +137,9 @@ void menuState() {
 // ## Logic functions ##
 
 void soilMoisture() {
-  moisture.begin(280, 560);
-
-  if (moisture.digital <= 30) {
+  moisture_sensor.begin(280, 560);
+  moisture = moisture_sensor.digital;
+  if (moisture <= 30) {
     digitalWrite(waterPump, HIGH);  // Relay ON
   } else {
     digitalWrite(waterPump, LOW);  // Relay OFF
@@ -149,7 +152,8 @@ void tempHumidity() {
 }
 
 void lightSensor() {
-  light.begin(1000, 150);
+  light_sensor.begin(1000, 150);
+  light = light_sensor.digital;
 }
 
 // ## LCD Functions ##
@@ -169,7 +173,7 @@ void printWater() {
   lcd.print("Water level:");  
         
   lcd.setCursor(0, 1);          
-  lcd.print(String(hc.dist()) + "cm");
+  lcd.print(String(sonar.ping_cm()) + "cm");
 }
 
 void printTH() {
@@ -184,14 +188,14 @@ void printTH() {
 void printMoisture() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Moisture: " + String(moisture.digital) + "%");
+  lcd.print("Moisture: " + String(moisture) + "%");
 
   lcd.setCursor(0, 1);
-  if (moisture.digital < 20) {
+  if (moisture < 20) {
     lcd.print("Plant is sad:(");
-  } else if (moisture.digital > 20 && moisture.digital < 70) {
+  } else if (moisture > 20 && moisture < 70) {
     lcd.print("Plant is happy:)");
-  } else if (moisture.digital > 70) {
+  } else if (moisture > 70) {
     lcd.print("Plant is wet:)");
   }
 }
@@ -199,14 +203,14 @@ void printMoisture() {
 void printLight() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Light: " + String(light.digital) + "%");
+  lcd.print("Light: " + String(light) + "%");
 
   lcd.setCursor(0, 1);
-  if (light.digital < 30) {
+  if (light < 30) {
     lcd.print("Too dark");
-  } else if (light.digital >= 30 && light.digital < 70) {
+  } else if (light >= 30 && light < 70) {
     lcd.print("Adequate light");
-  } else if (light.digital >= 70 && light.digital <= 100) {
+  } else if (light >= 70 && light <= 100) {
     lcd.print("Plenty of light");
   } else {
     lcd.print("Sensor error?");
